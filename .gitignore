@@ -1,0 +1,5 @@
+target/
+.vscode/
+*.class
+paper/*.aux
+paper/*.log
