@@ -3,7 +3,7 @@
 Projeto de Programação Paralela e Concorrente. Gonçalo Lourenço (fc68092).
 Configurado a 14 de outubro de 2026.
 
-A torre faz de "cluster": corre 3 nós, cada um preso a 2 cores. O portátil é o coordenador e liga-se à torre por cabo direto.
+A torre faz de "cluster": corre 3 nós, cada um preso a 2 cores. O portátil é o coordenador e liga-se à torre por cabo direto (desde 14 de outubro, 22h).
 
 ## 1. Hardware
 
@@ -26,6 +26,7 @@ A torre faz de "cluster": corre 3 nós, cada um preso a 2 cores. O portátil é 
 | Processador | Intel Core i7-13620H, 16 GB de RAM |
 | Sistema | Ubuntu 24.04.5 LTS |
 | Utilizador | `slx` |
+| Adaptador de rede | USB-C para Ethernet Gigabit, interface `enx00e06c79be37` |
 
 ## 2. BIOS da torre
 
@@ -72,7 +73,7 @@ Host fixo
 
 Para entrar: `ssh fixo` (sem palavra-passe).
 
-> O IP `192.168.1.90` é provisório, dado pelo router. Passa a `10.42.0.2` com o cabo direto (secção 8).
+> Durante a instalação a torre estava no router, com o IP `192.168.1.90`. Desde a mudança para o cabo direto (secção 8), o `HostName` é `10.42.0.2`.
 
 ## 5. Configuração da torre
 
@@ -87,7 +88,10 @@ sudo reboot
 
 ```bash
 sudo apt install -y openjdk-21-jre-headless linux-tools-common linux-tools-$(uname -r) lm-sensors
+sudo apt install -y iperf3 htop sysstat     # medir a rede e ver o uso dos cores
 ```
+
+No `iperf3`, responder **No** a "Iniciar o Iperf3 automaticamente como um daemon": o servidor só se liga quando é preciso (`iperf3 -s -1`).
 
 ### Desligar o que interfere nas medições
 
@@ -100,7 +104,12 @@ sudo systemctl disable --now unattended-upgrades apt-daily.timer apt-daily-upgra
 
 # Serviços do sistema só nos cores 6 e 7 (os cores 0 a 5 ficam para os nós)
 sudo systemctl set-property system.slice AllowedCPUs=6-7
+
+# Tarefas agendadas que podem correr a meio de uma medição (ver todas com: systemctl list-timers --all)
+sudo systemctl disable --now sysstat-collect.timer sysstat-summary.timer motd-news.timer
 ```
+
+As tarefas agendadas que ficam ligadas (`fstrim`, `logrotate`, `man-db`) correm nos cores 6-7.
 
 ### SMT desligado pelo kernel
 
@@ -179,18 +188,9 @@ Os cores 0-3 e 4-7 estão em dois grupos (CCX), cada um com a sua cache L3. Os n
 
 Flags da JVM nos nós: `-Xms512m -Xmx512m -XX:+UseSerialGC`.
 
-## 8. Por fazer
+## 8. Cabo direto (feito a 14 de outubro)
 
-- [ ] Na torre, desligar o aviso de upgrade para a 26.04. **Não fazer o upgrade.**
-  ```bash
-  sudo sed -i 's/^Prompt=.*/Prompt=never/' /etc/update-manager/release-upgrades
-  ```
-- [ ] Comprar um adaptador USB-C para Ethernet Gigabit e um cabo de rede.
-- [ ] Mudar para o cabo direto (passos abaixo).
-
-### Mudança para o cabo direto
-
-Fazer com monitor e teclado na torre, porque a sessão SSH cai ao mudar a rede.
+Foi feito todo por SSH, sem monitor na torre: prepara-se a rede nova com a torre ainda no router, aplica-se, e só depois se troca o cabo.
 
 1. Na torre, impedir que a configuração de rede seja reescrita:
    ```bash
@@ -210,20 +210,58 @@ Fazer com monitor e teclado na torre, porque a sessão SSH cai ao mudar a rede.
          nameservers:
            addresses: [10.42.0.1]
    ```
-   e aplicar com `sudo netplan apply`.
-3. Ligar o cabo do adaptador do portátil diretamente à torre.
-4. No portátil, criar a ligação partilhada (o nome do adaptador vê-se com `nmcli device`):
+   validar sem aplicar:
    ```bash
-   sudo nmcli connection add type ethernet ifname <adaptador> con-name cluster ipv4.method shared ipv4.addresses 10.42.0.1/24
-   sudo nmcli connection up cluster
+   sudo chmod 600 /etc/netplan/50-cloud-init.yaml
+   sudo netplan generate
    ```
-5. No portátil, em `~/.ssh/config`, mudar para `HostName 10.42.0.2`.
-6. Medir a latência com `ping -c 100 fixo`. A média é usada para prever o ponto de cruzamento da H1.
+3. No portátil, criar a ligação partilhada (o nome do adaptador vê-se com `nmcli device`):
+   ```bash
+   sudo nmcli connection add type ethernet ifname enx00e06c79be37 con-name cluster ipv4.method shared ipv4.addresses 10.42.0.1/24
+   ```
+4. Na torre, aplicar com `sudo netplan apply` (a sessão SSH congela; fechar com Enter, `~`, `.`).
+5. Passar o cabo da torre do router para o adaptador do portátil e, no portátil:
+   ```bash
+   sudo nmcli connection up cluster
+   sed -i 's/HostName 192.168.1.90/HostName 10.42.0.2/' ~/.ssh/config
+   echo '10.42.0.2 fixo' | sudo tee -a /etc/hosts
+   ```
+   A linha no `/etc/hosts` é precisa porque, sem o router, o nome `fixo` deixa de ser conhecido pelo `ping` e pelo `iperf3` (o `ssh` usa o `~/.ssh/config`).
+6. Na primeira ligação, o SSH pergunta se confia no novo endereço: a chave é a mesma da torre, responder `yes`.
 
-## 9. Uso no dia a dia
+> Até trocar o cabo, não reiniciar a torre: arrancaria já com `10.42.0.2`, que o router não conhece.
 
-1. Ligar o SSD externo e o cabo de rede **antes** de ligar a torre.
-2. Carregar no botão da torre e esperar cerca de 1 minuto.
+### Medições da rede
+
+Feitas a partir do portátil:
+
+```bash
+sudo ping -c 200 -i 0.002 fixo | tee data/testes/$(date +%Y-%m-%d_%H%M%S)_ping_cabo.txt
+ssh fixo 'iperf3 -s -1' &
+sleep 1
+iperf3 -c fixo | tee data/testes/$(date +%Y-%m-%d_%H%M%S)_iperf_cabo.txt
+```
+
+| Medida | Wi-Fi (antes) | Cabo direto |
+| --- | --- | --- |
+| Latência, pings seguidos | ~2,8 ms, saltos até 12,8 ms | **0,117 ms** (mín. 0,100, máx. 0,187, desvio 0,012), 0% perdidos |
+| Latência, ping normal (1 por segundo) | ~5,5 ms | 0,341 ms |
+| Largura de banda (iperf3) | ~103 Mbit/s, instável | **941 Mbit/s**, estável |
+
+A diferença entre os pings seguidos e o ping normal vem da poupança de energia entre pacotes. O valor que conta para as experiências, onde o tráfego é contínuo, é o dos pings seguidos.
+
+## 9. Por fazer
+
+- [ ] Na torre, desligar o aviso de upgrade para a 26.04. **Não fazer o upgrade.**
+  ```bash
+  sudo sed -i 's/^Prompt=.*/Prompt=never/' /etc/update-manager/release-upgrades
+  ```
+- [ ] Confirmar que as tarefas agendadas da secção 5 ficaram desligadas (`systemctl list-timers --all`).
+
+## 10. Uso no dia a dia
+
+1. Ligar o SSD externo e o cabo de rede (ao adaptador do portátil) **antes** de ligar a torre.
+2. Carregar no botão da torre e esperar cerca de 1 minuto. No portátil, a ligação `cluster` ativa-se sozinha quando o adaptador está ligado (se não, `sudo nmcli connection up cluster`).
 3. No portátil, `ssh fixo`. O `fixo login:` que aparece no monitor da torre pode ser ignorado.
 4. Antes de medir, correr a validação da secção 6.
 5. Para desligar: `ssh -t fixo sudo poweroff`, ou um toque curto no botão.
@@ -232,4 +270,5 @@ Fazer com monitor e teclado na torre, porque a sessão SSH cai ao mudar a rede.
 
 - Depois de uma atualização que traga um kernel novo, reinstalar `linux-tools-$(uname -r)`. Sem isso, o `cpupower` falha e o serviço deixa de fixar o governador.
 - Não correr `do-release-upgrade`: manter a 24.04, igual ao portátil.
-- Usar sempre o IP do cabo do portátil (`10.42.0.1`) como endereço do coordenador, nunca o do Wi-Fi.
+- Usar sempre o IP do cabo do portátil (`10.42.0.1`) como endereço do coordenador, nunca o do Wi-Fi (`192.168.1.84`).
+- A torre não precisa de internet. Quando precisar (instalar pacotes), tem-na através da partilha do portátil.

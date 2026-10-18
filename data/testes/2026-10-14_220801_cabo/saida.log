@@ -1,0 +1,3 @@
+Exception in thread "main" java.lang.IllegalArgumentException: Argumento inválido: plana
+	at pt.ulisboa.ppc.comum.Argumentos.<init>(Argumentos.java:14)
+	at pt.ulisboa.ppc.coordenador.Coordenador.main(Coordenador.java:46)

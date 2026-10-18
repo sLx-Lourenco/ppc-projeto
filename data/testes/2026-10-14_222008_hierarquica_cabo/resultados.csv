@@ -1,0 +1,4 @@
+politica,lote,desequilibrio,tarefas,iteracoes,ligacoes,repeticao,tempo_ns,mensagens,bytes_enviados,soma_duracoes_ns
+hierarquica,100,baralhada,20000,5972,3,0,91800013,600,241000,204552404
+hierarquica,100,baralhada,20000,5972,3,1,71885839,600,241000,205336211
+hierarquica,100,baralhada,20000,5972,3,2,70368218,600,241000,205821366

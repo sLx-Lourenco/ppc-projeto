@@ -1,0 +1,4 @@
+lote,desequilibrio,tarefas,iteracoes,ligacoes,repeticao,tempo_ns,mensagens,bytes_enviados,soma_duracoes_ns
+1,baralhada,20000,5972,6,0,9234023985,60000,340000,215853796
+1,baralhada,20000,5972,6,1,9651137255,60000,340000,214762412
+1,baralhada,20000,5972,6,2,9229953925,60000,340000,214191913

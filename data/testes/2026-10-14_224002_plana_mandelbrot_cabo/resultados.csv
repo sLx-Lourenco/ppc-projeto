@@ -1,0 +1,4 @@
+politica,carga,lote,desequilibrio,tarefas,parametro,ligacoes,repeticao,tempo_ns,mensagens,bytes_enviados,soma_duracoes_ns
+plana,mandelbrot,1,natural,64,512,6,0,1484901610,192,1088,7962607126
+plana,mandelbrot,1,natural,64,512,6,1,1538220264,192,1088,8090536028
+plana,mandelbrot,1,natural,64,512,6,2,1489350499,192,1088,7965362554

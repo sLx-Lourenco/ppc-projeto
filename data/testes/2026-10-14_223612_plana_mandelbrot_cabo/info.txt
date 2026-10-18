@@ -1,0 +1,6 @@
+data:      2026-10-14T22:36:12+01:00
+maquina:   slx-IdeaPad
+commit:    935ffe2
+por commitar: 9 ficheiros alterados
+java:      openjdk version "21.0.12.1" 2026-08-18
+comando:   java -cp target/ppc.jar pt.ulisboa.ppc.coordenador.Coordenador --politica plana --ligacoes 6 --carga mandelbrot --lado 128 --aquecimento 2 --repeticoes 3 --saida data/testes/2026-10-14_223612_plana_mandelbrot_cabo/resultados.csv

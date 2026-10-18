@@ -1,0 +1,4 @@
+politica,carga,lote,desequilibrio,tarefas,parametro,ligacoes,repeticao,tempo_ns,mensagens,bytes_enviados,soma_duracoes_ns
+hierarquica,mandelbrot,22,natural,64,512,3,0,2835856407,9,783,8075756316
+hierarquica,mandelbrot,22,natural,64,512,3,1,2915775149,9,783,8198950488
+hierarquica,mandelbrot,22,natural,64,512,3,2,2922044061,9,783,8208955741

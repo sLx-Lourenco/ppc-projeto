@@ -1,0 +1,4 @@
+politica,lote,desequilibrio,tarefas,iteracoes,ligacoes,repeticao,tempo_ns,mensagens,bytes_enviados,soma_duracoes_ns
+plana,1,baralhada,20000,5972,6,0,708975725,60000,340000,217298223
+plana,1,baralhada,20000,5972,6,1,706291746,60000,340000,216174688
+plana,1,baralhada,20000,5972,6,2,709444778,60000,340000,215915407
