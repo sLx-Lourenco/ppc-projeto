@@ -2,7 +2,7 @@ package pt.ulisboa.ppc.comum;
 
 /**
  * As políticas de distribuição de tarefas em estudo.
- * O nome é o que se escreve na linha de comandos (--politica, --modo) e no CSV.
+ * O nome é o que se escreve na linha de comandos (--politica, --modo) e no JSON.
  */
 public enum Politica {
 
@@ -18,7 +18,7 @@ public enum Politica {
         this.nome = nome;
     }
 
-    /** O nome usado na linha de comandos e no CSV. */
+    /** O nome usado na linha de comandos e no JSON. */
     public String nome() {
         return nome;
     }

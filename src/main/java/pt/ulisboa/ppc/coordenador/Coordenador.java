@@ -22,7 +22,7 @@ import pt.ulisboa.ppc.protocolo.Tarefa;
  *   - Distribuidor: a política do lado do coordenador (quantas tarefas por pedido);
  *   - Ligacao: atende cada ligação (HELLO, REQUEST, RESULTS);
  *   - Repeticao: estado e métricas de uma repetição;
- *   - RegistoCsv: escreve o CSV.
+ *   - RegistoJson: guarda a execução num ficheiro JSON em data/<categoria>/.
  */
 public final class Coordenador {
 
@@ -38,14 +38,14 @@ public final class Coordenador {
         String nomeCarga = a.texto("carga", "sintetica");
         int aquecimento = a.inteiro("aquecimento", 5);
         int repeticoes = a.inteiro("repeticoes", 30);
-        RegistoCsv csv = new RegistoCsv(Path.of(a.texto("saida", "resultados.csv")));
+
         boolean verificar = a.texto("verificar", "nao").equals("sim");
 
         if (politica == Politica.PLANA && lote != 1) {
             throw new IllegalArgumentException("Na política plana o lote tem de ser 1");
         }
 
-        // Tarefas da configuração. "parametro" vai para o CSV: na sintética são as
+        // Tarefas da configuração. "parametro" vai para o JSON: na sintética são as
         // iterações médias por tarefa, no Mandelbrot é o lado do bloco.
         Tarefa[] tarefas;
         long parametro;
@@ -63,7 +63,10 @@ public final class Coordenador {
             parametro = iteracoes;
         }
         Configuracao config = new Configuracao(politica, nomeCarga, lote, desequilibrio,
-                tarefas.length, parametro, ligacoes);
+                tarefas.length, parametro, ligacoes, aquecimento, repeticoes);
+        RegistoJson registo = new RegistoJson(Path.of(a.texto("pasta", "data")),
+                a.texto("categoria", "testes"), a.texto("nome", ""), config,
+                a.texto("commit", "desconhecido"), String.join(" ", args));
         Long esperado = verificar ? checksumSequencial(Cargas.criar(nomeCarga), tarefas) : null;
 
         Distribuidor distribuidor = new Distribuidor(lote);
@@ -87,7 +90,7 @@ public final class Coordenador {
             System.out.printf("%s %s %3d: %10.3f ms, %d mensagens%n", politica.nome(),
                     medida ? "rep " : "aquec", r, tempoNs / 1e6, rep.mensagens.get());
             if (medida) {
-                csv.escrever(config, r - aquecimento, tempoNs, rep);
+                registo.escrever(r - aquecimento, tempoNs, rep);
             }
         }
 
@@ -95,6 +98,8 @@ public final class Coordenador {
         for (Thread t : threads) {
             t.join();
         }
+
+        System.out.println("Guardado em " + registo.ficheiro());
     }
 
     /** Aceita as ligações dos nós e lança uma thread para atender cada uma. */

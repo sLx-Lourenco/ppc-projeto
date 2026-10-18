@@ -1,0 +1,11 @@
+
+Plana, sintética
+experiments/correr.sh cabo 10.42.0.1 plana --tarefas 20000 --iteracoes 5972 --desequilibrio baralhada --aquecimento 2 --repeticoes 3 --verificar sim
+
+Hierárquica, sintética
+experiments/correr.sh cabo 10.42.0.1 hierarquica --lote 100 --tarefas 20000 --iteracoes 5972 --desequilibrio baralhada --aquecimento 2 --repeticoes 3 --verificar sim
+
+Plana, Mandelbrot lado 128:
+experiments/correr.sh cabo 10.42.0.1 plana --carga mandelbrot --lado 8 --aquecimento 2 --repeticoes 3 --verificar sim
+Hierárquica, Mandelbrot lado 128:
+experiments/correr.sh cabo 10.42.0.1 hierarquica --lote 1000 --carga mandelbrot --lado 8 --aquecimento 2 --repeticoes 3 --verificar sim

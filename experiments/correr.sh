@@ -10,12 +10,15 @@
 #   A carga passa-se com --carga (sintetica por omissão, ou mandelbrot); o script
 #   passa-a também aos nós.
 #
+#   A categoria passa-se com --categoria (testes por omissão, piloto ou final).
+#
 # Exemplos:
 #   experiments/correr.sh cabo 10.42.0.1 plana --tarefas 20000 --iteracoes 5972 --verificar sim
 #   experiments/correr.sh cabo 10.42.0.1 hierarquica --lote 100 --tarefas 20000 --iteracoes 5972
 #   experiments/correr.sh cabo 10.42.0.1 hierarquica --lote 20 --carga mandelbrot --lado 128
 #
-# Os resultados ficam em data/testes/<data>_<politica>_<nome>/ (através do registar.sh).
+# O coordenador guarda a execução num ficheiro JSON em data/<categoria>/
+# (o nome do ficheiro leva a data, a configuração e o <nome>).
 
 set -euo pipefail
 
@@ -62,6 +65,10 @@ for i in $(seq 1 $NOS); do
         > ~/no$i.log 2>&1 < /dev/null &"
 done
 
-# 3. Correr o coordenador no portátil e guardar tudo
-experiments/registar.sh "${POLITICA}_${CARGA}_${NOME}" java -cp target/ppc.jar pt.ulisboa.ppc.coordenador.Coordenador \
-    --politica "$POLITICA" --ligacoes "$LIGACOES" "$@"
+# 3. Versão do código, para o JSON: o commit atual, com "-alterado" se houver
+#    alterações ao código por commitar (os ficheiros de data/ não contam).
+COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo sem-commit)
+
+# 4. Correr o coordenador no portátil
+java -cp target/ppc.jar pt.ulisboa.ppc.coordenador.Coordenador \
+    --politica "$POLITICA" --ligacoes "$LIGACOES" --nome "$NOME" --commit "$COMMIT" "$@"

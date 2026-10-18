@@ -1,0 +1,26 @@
+{
+  "data": "2026-10-18T12:47:55",
+  "commit": "cc944e6",
+  "comando": "--politica plana --ligacoes 6 --nome cabo --commit cc944e6 --carga mandelbrot --lado 8 --aquecimento 2 --repeticoes 3 --verificar sim",
+  "configuracao": {
+    "politica": "plana",
+    "carga": "mandelbrot",
+    "lote": 1,
+    "desequilibrio": "natural",
+    "tarefas": 262144,
+    "parametro": 8,
+    "ligacoes": 6,
+    "aquecimento": 2,
+    "repeticoes_pedidas": 3
+  },
+  "ambiente": {
+    "coordenador": "slx-IdeaPad",
+    "java": "21.0.12.1",
+    "sistema": "Linux 7.0.0-38-generic"
+  },
+  "repeticoes": [
+    {"repeticao": 0, "tempo_ns": 10109018923, "mensagens": 786432, "bytes_enviados": 4456448, "soma_duracoes_ns": 8112818314},
+    {"repeticao": 1, "tempo_ns": 10101709946, "mensagens": 786432, "bytes_enviados": 4456448, "soma_duracoes_ns": 8113536932},
+    {"repeticao": 2, "tempo_ns": 10131518938, "mensagens": 786432, "bytes_enviados": 4456448, "soma_duracoes_ns": 8113818070}
+  ]
+}
